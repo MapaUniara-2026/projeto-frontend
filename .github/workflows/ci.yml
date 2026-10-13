@@ -1,0 +1,24 @@
+# Roda em todo PR para dev, qa ou main. O nome do job ("Front-end") é um "required check"
+# da proteção das branches — não renomeie sem atualizar scripts/setup-github.sh.
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, qa, main]
+
+jobs:
+  frontend:
+    name: Front-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          VITE_APP_ENV: CI
+          VITE_API_URL: http://localhost:3000

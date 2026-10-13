@@ -1,0 +1,6 @@
+# Define quem revisa cada parte do código.
+# Para ativar: crie os times na organização (com estes nomes) e descomente.
+# Depois marque "Require review from Code Owners" nas branches protegidas.
+
+# *              @MapaUniara-2026/frontend
+# /.github/      @MapaUniara-2026/arquitetura
