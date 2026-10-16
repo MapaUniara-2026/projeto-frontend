@@ -1,4 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import BarraFiltrosAtivo from './components/BarraFiltrosAtivo.jsx'
+import FiltersPanel from './components/FiltersPanel.jsx'
+import FloorPlan from './components/FloorPlan.jsx'
+import Header from './components/Header.jsx'
+import RoomDetails from './components/RoomDetails.jsx'
+import { AULAS, DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
+import { ANDAR, ANDARES, ROOMS, UNIDADE } from './data/rooms.js'
 import { api } from './services/api'
 import './App.css'
 
@@ -6,31 +13,135 @@ import './App.css'
 const ambiente = import.meta.env.VITE_APP_ENV ?? 'LOCAL'
 const versao = __APP_VERSION__
 
+const SEM_FILTRO = { cursos: [], dia: null, periodo: null }
+const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+const bateFiltro = (aula, f) =>
+  (!f.cursos.length || f.cursos.includes(aula.curso)) &&
+  (!f.dia || aula.dia === f.dia) &&
+  (!f.periodo || periodoDe(aula.inicio) === f.periodo)
+
 function App() {
+  const now = useMemo(() => agora(), [])
+  const [rascunho, setRascunho] = useState(SEM_FILTRO)
+  const [filtros, setFiltros] = useState(SEM_FILTRO)
+  const [busca, setBusca] = useState('')
+  const [selecionada, setSelecionada] = useState(null)
   const [saude, setSaude] = useState({ status: 'carregando' })
+  const planRef = useRef(null)
 
   useEffect(() => {
     api('/api/health')
       .then(setSaude)
-      .catch(() => setSaude({ status: 'erro' }))
+      .catch(() => setSaude({ status: 'offline' }))
   }, [])
 
-  return (
-    <main className="app">
-      <span className={`badge badge-${ambiente.toLowerCase()}`}>
-        {ambiente} · v{versao}
-      </span>
-      <h1>Projeto da Faculdade</h1>
-      <p>Edite <code>src/App.jsx</code> e salve para ver as mudanças.</p>
+  const filtroAtivo = filtros.cursos.length > 0 || Boolean(filtros.dia) || Boolean(filtros.periodo)
+  const termo = busca.trim()
 
-      <section className="status">
-        <h2>Status do sistema</h2>
-        <p>
-          API: <strong>{saude.status}</strong>
-          {saude.banco && <> · Banco: <strong>{saude.banco}</strong></>}
-        </p>
-      </section>
-    </main>
+  // Salas destacadas na planta: as que têm aula nos filtros aplicados E batem com a busca.
+  // null = nenhum filtro/busca (todas as salas aparecem normais).
+  const destaque = useMemo(() => {
+    if (!filtroAtivo && !termo) return null
+    let ids = filtroAtivo
+      ? new Set(AULAS.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
+      : new Set(ROOMS.map((r) => r.id))
+    if (termo) {
+      const q = norm(termo)
+      ids = new Set(ROOMS.filter((r) => ids.has(r.id) && (norm(r.nome).includes(q) || norm(r.id).includes(q))).map((r) => r.id))
+    }
+    return ids
+  }, [filtros, filtroAtivo, termo])
+
+  const sala = ROOMS.find((r) => r.id === selecionada) ?? null
+  const aulasDaSala = AULAS.filter((a) => a.sala === selecionada)
+  const aulaAtual = aulasDaSala.find((a) => emAndamento(a, now)) ?? null
+  const aulaFiltrada = filtroAtivo ? aulasDaSala.find((a) => bateFiltro(a, filtros)) ?? null : null
+  const aula = aulaAtual ?? aulaFiltrada
+  const dia = filtros.dia || aula?.dia || now.dia
+  const aulasDoDia = aulasDaSala.filter((a) => a.dia === dia).sort((a, b) => a.inicio.localeCompare(b.inicio))
+
+  const limpar = () => {
+    setRascunho(SEM_FILTRO)
+    setFiltros(SEM_FILTRO)
+    setBusca('')
+  }
+
+  return (
+    <div className="app">
+      <Header unidade={UNIDADE} />
+
+      <FiltersPanel
+        busca={busca}
+        setBusca={setBusca}
+        rascunho={rascunho}
+        setRascunho={setRascunho}
+        aplicar={() => setFiltros(rascunho)}
+        limpar={limpar}
+        rodape={
+          <>
+            <span className={`badge badge-${ambiente.toLowerCase()}`}>{ambiente} · v{versao}</span>
+            <span className={`api-status api-${saude.status}`}>
+              API: {saude.status}
+              {saude.banco && <> · Banco: {saude.banco}</>}
+            </span>
+          </>
+        }
+      />
+
+      <main className="main">
+        <div className="main-head">
+          <div>
+            <h1>Planta interna</h1>
+            <p className="muted">{UNIDADE} • atualizado agora</p>
+          </div>
+          <div className="tabs" role="tablist" aria-label="Andar">
+            {ANDARES.map((a) => (
+              <button
+                key={a}
+                type="button"
+                role="tab"
+                className={a === ANDAR ? 'on' : ''}
+                aria-selected={a === ANDAR}
+                disabled={a !== ANDAR}
+                title={a !== ANDAR ? 'Planta ainda não importada' : undefined}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <BarraFiltrosAtivo
+          courses={filtros.cursos}
+          day={DIA_LABEL[filtros.dia]}
+          period={PERIODO_LABEL[filtros.periodo]}
+          search={termo}
+          resultCount={destaque?.size ?? 0}
+          floor={ANDAR.toLowerCase() === 'térreo' ? 'térreo' : ANDAR}
+        />
+
+        <div className="content">
+          <FloorPlan
+            ref={planRef}
+            rooms={ROOMS}
+            destaque={destaque}
+            selecionada={selecionada}
+            onSelect={setSelecionada}
+            andar={ANDAR}
+          />
+          <RoomDetails
+            sala={sala}
+            aula={aula}
+            emAndamento={Boolean(aulaAtual)}
+            aulasDoDia={aulasDoDia}
+            dia={dia}
+            onClose={() => setSelecionada(null)}
+            onCenter={() => sala && planRef.current?.centerOn(sala.bbox)}
+          />
+        </div>
+      </main>
+    </div>
   )
 }
 
