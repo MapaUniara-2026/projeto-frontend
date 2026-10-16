@@ -49,12 +49,20 @@ Toda chamada à API passa por `src/services/api.js`. Use sempre ela, nunca `fetc
 | `src/components/BarraFiltrosAtivo.jsx` | Barra "Filtros ativos" com contagem de resultados | barradefiltro |
 | `src/components/FloorPlan.jsx` | Planta vetorial com salas clicáveis, legenda, zoom e arrastar | mapa-interativo |
 | `src/components/RoomDetails.jsx` | Painel da sala selecionada (status, disciplina, curso, professor, horário) | mapa-interativo + uniara-mapa-front |
-| `src/data/planta.js` | Paredes da planta (SVG gerado do DWG) | mapa-interativo |
-| `src/data/rooms.js` | Polígonos das salas, unidade e andares | mapa-interativo |
+| `src/data/andares/index.js` | Lista de andares (abas) e unidade | novo |
+| `src/data/andares/terreo/planta.js` | Paredes do térreo (SVG gerado do DWG) | mapa-interativo |
+| `src/data/andares/terreo/salas.js` | Polígonos das salas do térreo | mapa-interativo |
 | `src/data/aulas.js` | Aulas — **dados de exemplo**, trocar pela API mantendo o formato | mapa-interativo |
+| `tools/vetorizar_planta.py` | Converte a imagem de uma planta no `planta.js` de um andar | novo (baseado em mapavetorizado) |
 | `tools/detectar_salas.py` | Detecta automaticamente os contornos das salas numa planta PNG | mapa-interativo |
 
 Para simular um horário (ex.: ver salas "Ocupada agora"): `http://localhost:5173/?dia=segunda&hora=19:30`.
+
+### ⚠️ Pendências do mapa
+
+- **Só o Térreo funciona hoje.** O 1º e o 2º andar aparecem nas abas, mas desabilitados, porque a planta deles ainda não foi entregue. O passo a passo para integrar está em **[docs/INTEGRAR-ANDARES.md](docs/INTEGRAR-ANDARES.md)**.
+- Confirmar com o time se essa planta é o "Térreo" (como no código) ou o "1º andar" (como no protótipo visual). Ver a seção *Divergência de nomenclatura* no mesmo documento.
+- Os nomes das salas "Sala 1xx" e as aulas em `src/data/aulas.js` são **dados de exemplo** até a integração com a API.
 
 ---
 

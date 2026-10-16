@@ -1,11 +1,10 @@
 import { forwardRef, useImperativeHandle, useState } from 'react'
-import { PLANTA_PATH, VIEWBOX } from '../data/planta.js'
 import { useViewBox } from '../hooks/useViewBox.js'
 import Icon from './Icon.jsx'
 
 // Planta vetorial (SVG) com salas clicáveis, zoom pela roda do mouse e arrastar para mover.
-const FloorPlan = forwardRef(function FloorPlan({ rooms, destaque, selecionada, onSelect, andar }, ref) {
-  const { vb, svgRef, handlers, moved, zoomIn, zoomOut, reset, centerOn } = useViewBox(VIEWBOX)
+const FloorPlan = forwardRef(function FloorPlan({ planta, rooms, destaque, selecionada, onSelect, andar }, ref) {
+  const { vb, svgRef, handlers, moved, zoomIn, zoomOut, reset, centerOn } = useViewBox(planta.viewBox)
   useImperativeHandle(ref, () => ({ centerOn }))
   // Legenda: liga/desliga o preenchimento de cada tipo de ambiente na planta.
   const [mostrar, setMostrar] = useState({ salas: false, servicos: false })
@@ -39,7 +38,7 @@ const FloorPlan = forwardRef(function FloorPlan({ rooms, destaque, selecionada, 
           aria-label={`Planta do ${andar}`}
           {...handlers}
         >
-          <path d={PLANTA_PATH} className="planta" />
+          <path d={planta.path} className="planta" />
           {rooms.map((r) => {
             const estado = r.id === selecionada ? 'selected' : temDestaque ? (destaque.has(r.id) ? 'match' : 'dim') : ''
             return (

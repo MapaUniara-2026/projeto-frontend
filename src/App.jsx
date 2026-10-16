@@ -5,7 +5,7 @@ import FloorPlan from './components/FloorPlan.jsx'
 import Header from './components/Header.jsx'
 import RoomDetails from './components/RoomDetails.jsx'
 import { AULAS, DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
-import { ANDAR, ANDARES, ROOMS, UNIDADE } from './data/rooms.js'
+import { ANDARES, ANDAR_INICIAL, UNIDADE } from './data/andares/index.js'
 import { api } from './services/api'
 import './App.css'
 
@@ -27,6 +27,7 @@ function App() {
   const [filtros, setFiltros] = useState(SEM_FILTRO)
   const [busca, setBusca] = useState('')
   const [selecionada, setSelecionada] = useState(null)
+  const [andar, setAndar] = useState(ANDAR_INICIAL)
   const [saude, setSaude] = useState({ status: 'carregando' })
   const planRef = useRef(null)
 
@@ -39,21 +40,20 @@ function App() {
   const filtroAtivo = filtros.cursos.length > 0 || Boolean(filtros.dia) || Boolean(filtros.periodo)
   const termo = busca.trim()
 
-  // Salas destacadas na planta: as que têm aula nos filtros aplicados E batem com a busca.
+  const salas = andar.salas
+
+  // Salas do andar atual destacadas na planta: as que têm aula nos filtros aplicados E batem com a busca.
   // null = nenhum filtro/busca (todas as salas aparecem normais).
   const destaque = useMemo(() => {
     if (!filtroAtivo && !termo) return null
-    let ids = filtroAtivo
-      ? new Set(AULAS.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
-      : new Set(ROOMS.map((r) => r.id))
-    if (termo) {
-      const q = norm(termo)
-      ids = new Set(ROOMS.filter((r) => ids.has(r.id) && (norm(r.nome).includes(q) || norm(r.id).includes(q))).map((r) => r.id))
-    }
-    return ids
-  }, [filtros, filtroAtivo, termo])
+    const comAula = new Set(AULAS.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
+    const q = norm(termo)
+    return new Set(salas
+      .filter((r) => (!filtroAtivo || comAula.has(r.id)) && (!termo || norm(r.nome).includes(q) || norm(r.id).includes(q)))
+      .map((r) => r.id))
+  }, [filtros, filtroAtivo, termo, salas])
 
-  const sala = ROOMS.find((r) => r.id === selecionada) ?? null
+  const sala = salas.find((r) => r.id === selecionada) ?? null
   const aulasDaSala = AULAS.filter((a) => a.sala === selecionada)
   const aulaAtual = aulasDaSala.find((a) => emAndamento(a, now)) ?? null
   const aulaFiltrada = filtroAtivo ? aulasDaSala.find((a) => bateFiltro(a, filtros)) ?? null : null
@@ -98,15 +98,16 @@ function App() {
           <div className="tabs" role="tablist" aria-label="Andar">
             {ANDARES.map((a) => (
               <button
-                key={a}
+                key={a.id}
                 type="button"
                 role="tab"
-                className={a === ANDAR ? 'on' : ''}
-                aria-selected={a === ANDAR}
-                disabled={a !== ANDAR}
-                title={a !== ANDAR ? 'Planta ainda não importada' : undefined}
+                className={a.id === andar.id ? 'on' : ''}
+                aria-selected={a.id === andar.id}
+                disabled={!a.planta}
+                title={!a.planta ? 'Planta ainda não importada' : undefined}
+                onClick={() => { setAndar(a); setSelecionada(null) }}
               >
-                {a}
+                {a.nome}
               </button>
             ))}
           </div>
@@ -118,17 +119,19 @@ function App() {
           period={PERIODO_LABEL[filtros.periodo]}
           search={termo}
           resultCount={destaque?.size ?? 0}
-          floor={ANDAR.toLowerCase() === 'térreo' ? 'térreo' : ANDAR}
+          floor={andar.id === 'terreo' ? 'térreo' : andar.nome}
         />
 
         <div className="content">
           <FloorPlan
+            key={andar.id}
             ref={planRef}
-            rooms={ROOMS}
+            planta={andar.planta}
+            rooms={salas}
             destaque={destaque}
             selecionada={selecionada}
             onSelect={setSelecionada}
-            andar={ANDAR}
+            andar={andar.nome}
           />
           <RoomDetails
             sala={sala}

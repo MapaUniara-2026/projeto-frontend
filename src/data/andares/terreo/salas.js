@@ -1,6 +1,6 @@
-// Salas clicáveis, em pixels da planta (636 x 576, ver planta.js).
+// Salas clicáveis do térreo, em pixels da planta (636 x 576, ver planta.js).
 // Para ajustar uma sala, mude os números de `pontos`. Salas "Sala 1xx" são nomes provisórios.
-const rect = (x1, y1, x2, y2) => [[x1, y1], [x2, y1], [x2, y2], [x1, y2]];
+import { rect } from '../salas-util.js';
 
 // Os números abaixo foram medidos numa imagem reduzida; K corrige para a escala real da planta.
 const K = 1.108;
@@ -18,12 +18,7 @@ const AUTO = {
   'BL4-113': [[262,488],[262,523],[266,526],[455,526],[459,523],[460,488],[456,485],[266,485]],
 };
 
-export const UNIDADE = 'Unidade 4';
-export const ANDARES = ['Térreo', '1º andar', '2º andar'];
-// Andar cuja planta está em planta.js. Os demais aparecem desabilitados até serem importados.
-export const ANDAR = 'Térreo';
-
-export const ROOMS = [
+export const SALAS = [
   { id: 'BL4-101', nome: 'Sala 101', tipo: 'sala', pontos: rect(32.5, 216.5, 135, 268.5) },
   { id: 'BL4-102', nome: 'Auditório', tipo: 'sala', pontos: rect(32.5, 268.5, 135, 317) },
   { id: 'BL4-103', nome: 'Lab. informática 7', tipo: 'lab', pontos: rect(32.5, 317, 102.5, 369) },
@@ -38,9 +33,4 @@ export const ROOMS = [
   { id: 'BL4-112', nome: 'Sala 112', tipo: 'sala', pontos: rect(377.5, 332.5, 417.5, 414) },
   { id: 'BL4-113', nome: 'Sala 113', tipo: 'sala', pontos: rect(235, 436.5, 416, 476) },
   { id: 'BL4-114', nome: 'Sala 114', tipo: 'sala', pontos: [[80, 98.5], [135, 132.5], [111, 170], [60, 150]] },
-].map((r0) => {
-  const r = { ...r0, pontos: AUTO[r0.id] ?? r0.pontos.map(([x, y]) => [+(x * K).toFixed(1), +(y * K).toFixed(1)]) };
-  const xs = r.pontos.map((p) => p[0]), ys = r.pontos.map((p) => p[1]);
-  const bbox = { x1: Math.min(...xs), y1: Math.min(...ys), x2: Math.max(...xs), y2: Math.max(...ys) };
-  return { ...r, andar: ANDAR, bbox, centro: [(bbox.x1 + bbox.x2) / 2, (bbox.y1 + bbox.y2) / 2] };
-});
+].map((r) => ({ ...r, pontos: AUTO[r.id] ?? r.pontos.map(([x, y]) => [+(x * K).toFixed(1), +(y * K).toFixed(1)]) }));
