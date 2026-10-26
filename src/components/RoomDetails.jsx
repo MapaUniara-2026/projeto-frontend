@@ -1,8 +1,10 @@
 import { DIA_LABEL, PERIODO_LABEL, periodoDe } from '../data/aulas.js'
+import { getInfoSala } from '../data/salas-info.js'
 import Icon from './Icon.jsx'
 
 const SEM_INFO = 'Informação não disponível'
 const ICONE_PERIODO = { manhã: 'sunrise', tarde: 'sun', noite: 'moon' }
+const TIPO_LABEL = { sala: 'Sala de aula', lab: 'Laboratório', servico: 'Serviço' }
 
 // Painel lateral direito com os dados da sala selecionada.
 // `aula` é a aula em andamento agora; se não houver, a aula que bate com os filtros aplicados.
@@ -20,6 +22,7 @@ export default function RoomDetails({ sala, aula, emAndamento, aulasDoDia, dia, 
   const servico = sala.tipo === 'servico'
   const periodo = aula ? periodoDe(aula.inicio) : null
   const outras = aulasDoDia.filter((a) => a !== aula)
+  const info = getInfoSala(sala.id)
 
   return (
     <aside className="details" aria-live="polite">
@@ -29,7 +32,14 @@ export default function RoomDetails({ sala, aula, emAndamento, aulasDoDia, dia, 
           <button type="button" className="icon-button" onClick={onClose} aria-label="Fechar"><Icon name="close" size={16} /></button>
         </div>
         <h2>{sala.nome}</h2>
-        <p className="details-sub"><Icon name="building" size={15} /> {sala.id} · {sala.andar}</p>
+        <div className="meta-row">
+          <span className="meta-pill"><Icon name="building" size={13} /> {sala.id}</span>
+          <span className="meta-pill">{TIPO_LABEL[sala.tipo] ?? sala.tipo}</span>
+          <span className="meta-pill">{sala.andar ?? 'Térreo'}</span>
+          {info.capacidade && (
+            <span className="meta-pill"><Icon name="user" size={13} /> {info.capacidade} lugares</span>
+          )}
+        </div>
         {!servico && (
           <div className={`status ${emAndamento ? 'ocupada' : 'livre'}`}>
             <strong><i aria-hidden="true" /> {emAndamento ? 'Ocupada agora' : 'Livre agora'}</strong>
@@ -39,10 +49,41 @@ export default function RoomDetails({ sala, aula, emAndamento, aulasDoDia, dia, 
       </header>
 
       <div className="details-body">
-        {servico && <p className="muted">Ambiente de serviço, sem aulas programadas.</p>}
+        {info.descricao && (
+          <p className="descricao">{info.descricao}</p>
+        )}
+
+        {info.recursos.length > 0 && (
+          <section className="bloco">
+            <h4>Recursos</h4>
+            <div className="chips chips-info">
+              {info.recursos.map((r) => (
+                <span key={r} className="chip chip-info">{r}</span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="bloco galeria">
+          <h4>Fotos</h4>
+          {info.fotos.length === 0 ? (
+            <div className="galeria-placeholder" aria-label="Fotos em breve">
+              <Icon name="building" size={28} />
+              <small>Fotos deste ambiente em breve</small>
+            </div>
+          ) : (
+            <div className="galeria-grid">
+              {info.fotos.map((foto, i) => (
+                <img key={foto.src ?? i} src={foto.src} alt={foto.alt ?? `${sala.nome} — foto ${i + 1}`} loading="lazy" />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {servico && !aula && <p className="muted">Ambiente de serviço, sem aulas programadas.</p>}
 
         {aula && (
-          <>
+          <section className="bloco">
             <h4>{emAndamento ? 'Aula em andamento' : 'Aula no horário filtrado'}</h4>
             <Info icone="book" rotulo="Disciplina" valor={aula.disciplina} />
             <Info icone="cap" rotulo="Curso" valor={aula.curso} extra={aula.semestre && `${aula.semestre}º semestre`} />
@@ -58,7 +99,7 @@ export default function RoomDetails({ sala, aula, emAndamento, aulasDoDia, dia, 
               </div>
             </div>
             <Info icone={ICONE_PERIODO[periodo]} rotulo="Período" valor={PERIODO_LABEL[periodo]} />
-          </>
+          </section>
         )}
 
         {!servico && !aula && (
@@ -70,7 +111,7 @@ export default function RoomDetails({ sala, aula, emAndamento, aulasDoDia, dia, 
         </button>
 
         {!servico && (
-          <>
+          <section className="bloco">
             <h4>{aula ? 'Outras aulas de' : 'Aulas de'} {DIA_LABEL[dia] ?? dia}</h4>
             {outras.length === 0 && <p className="muted">Nenhuma {aula ? 'outra ' : ''}aula nesta sala neste dia.</p>}
             <ul className="lista">
@@ -81,7 +122,7 @@ export default function RoomDetails({ sala, aula, emAndamento, aulasDoDia, dia, 
                 </li>
               ))}
             </ul>
-          </>
+          </section>
         )}
       </div>
     </aside>

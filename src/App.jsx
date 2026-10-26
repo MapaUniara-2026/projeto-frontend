@@ -4,8 +4,9 @@ import FiltersPanel from './components/FiltersPanel.jsx'
 import FloorPlan from './components/FloorPlan.jsx'
 import Header from './components/Header.jsx'
 import RoomDetails from './components/RoomDetails.jsx'
-import { AULAS, DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
+import { DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
 import { ANDARES, ANDAR_INICIAL, UNIDADE } from './data/andares/index.js'
+import useAulas from './hooks/useAulas.js'
 import { api } from './services/api'
 import './App.css'
 
@@ -14,12 +15,27 @@ const ambiente = import.meta.env.VITE_APP_ENV ?? 'LOCAL'
 const versao = __APP_VERSION__
 
 const SEM_FILTRO = { cursos: [], dia: null, periodo: null }
-const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const norm = (s) => (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 const bateFiltro = (aula, f) =>
   (!f.cursos.length || f.cursos.includes(aula.curso)) &&
   (!f.dia || aula.dia === f.dia) &&
   (!f.periodo || periodoDe(aula.inicio) === f.periodo)
+
+// Busca textual: casa só em nome e código da sala, por prefixo de palavra.
+// Ex.: "lab" acha "Lab. Informática 7"; "laboratório" acha "Laboratório";
+// "ab" NÃO acha "Laboratório" (não é prefixo). O id também é testado por prefixo
+// (ex.: "bl4" acha "BL4-104").
+const bateBusca = (sala, q) => {
+  if (!q) return true
+  const nome = norm(sala.nome)
+  const id = norm(sala.id)
+  if (nome.startsWith(q) || id.startsWith(q)) return true
+  return nome.split(/[\s.\-_/]+/).some((palavra) => palavra.startsWith(q))
+}
+
+const horaHHMM = (d) =>
+  `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
 function App() {
   const now = useMemo(() => agora(), [])
@@ -30,6 +46,8 @@ function App() {
   const [andar, setAndar] = useState(ANDAR_INICIAL)
   const [saude, setSaude] = useState({ status: 'carregando' })
   const planRef = useRef(null)
+
+  const { aulas: AULAS, origem, carregando, erro, atualizadoEm, refetch } = useAulas()
 
   useEffect(() => {
     api('/api/health')
@@ -49,9 +67,9 @@ function App() {
     const comAula = new Set(AULAS.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
     const q = norm(termo)
     return new Set(salas
-      .filter((r) => (!filtroAtivo || comAula.has(r.id)) && (!termo || norm(r.nome).includes(q) || norm(r.id).includes(q)))
+      .filter((r) => (!filtroAtivo || comAula.has(r.id)) && bateBusca(r, q))
       .map((r) => r.id))
-  }, [filtros, filtroAtivo, termo, salas])
+  }, [filtros, filtroAtivo, termo, salas, AULAS])
 
   const sala = salas.find((r) => r.id === selecionada) ?? null
   const aulasDaSala = AULAS.filter((a) => a.sala === selecionada)
@@ -85,6 +103,14 @@ function App() {
               API: {saude.status}
               {saude.banco && <> · Banco: {saude.banco}</>}
             </span>
+            <span className={`aulas-status aulas-${origem}`}>
+              Aulas: {carregando ? 'carregando…' : origem === 'api' ? 'API' : 'mock'}
+              {atualizadoEm && !carregando && <> · {horaHHMM(atualizadoEm)}</>}
+              {erro && <> · erro</>}
+            </span>
+            <button type="button" className="btn ghost btn-refresh" onClick={refetch} disabled={carregando} aria-label="Atualizar aulas">
+              {carregando ? '…' : '↻ atualizar'}
+            </button>
           </>
         }
       />

@@ -34,10 +34,10 @@ export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, a
         <input
           ref={buscaRef}
           type="search"
-          placeholder="Buscar sala ou código..."
+          placeholder="Buscar sala (ex.: Lab, Auditório, BL4-104)..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          aria-label="Buscar sala ou código"
+          aria-label="Buscar sala"
         />
         <kbd>⌘ K</kbd>
       </label>
