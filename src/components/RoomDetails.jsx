@@ -20,6 +20,8 @@ export default function RoomDetails({ sala, aula, emAndamento, aulasDoDia, dia, 
   const servico = sala.tipo === 'servico'
   const periodo = aula ? periodoDe(aula.inicio) : null
   const outras = aulasDoDia.filter((a) => a !== aula)
+  // A fotografia deve pertencer à sala selecionada, identificada por seu registro.
+  const imagemUrl = sala.imagem_url
 
   return (
     <aside className="details" aria-live="polite">
@@ -39,6 +41,12 @@ export default function RoomDetails({ sala, aula, emAndamento, aulasDoDia, dia, 
       </header>
 
       <div className="details-body">
+        {imagemUrl && (
+          <figure className="room-photo">
+            <img key={sala.id} src={imagemUrl} alt={`Fotografia de ${sala.nome} (${sala.id})`} />
+            <figcaption>Fotografia · {sala.nome}</figcaption>
+          </figure>
+        )}
         {servico && <p className="muted">Ambiente de serviço, sem aulas programadas.</p>}
 
         {aula && (

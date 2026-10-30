@@ -2,6 +2,8 @@
 // Para ajustar uma sala, mude os números de `pontos`. Salas "Sala 1xx" são nomes provisórios.
 import { rect } from '../salas-util.js';
 
+const imagemSala = (id) => `/room-photos/${id}.svg`;
+
 // Os números abaixo foram medidos numa imagem reduzida; K corrige para a escala real da planta.
 const K = 1.108;
 
@@ -19,18 +21,18 @@ const AUTO = {
 };
 
 export const SALAS = [
-  { id: 'BL4-101', nome: 'Sala 101', tipo: 'sala', pontos: rect(32.5, 216.5, 135, 268.5) },
-  { id: 'BL4-102', nome: 'Auditório', tipo: 'sala', pontos: rect(32.5, 268.5, 135, 317) },
-  { id: 'BL4-103', nome: 'Lab. informática 7', tipo: 'lab', pontos: rect(32.5, 317, 102.5, 369) },
-  { id: 'BL4-104', nome: 'Sala 104', tipo: 'sala', pontos: rect(102.5, 317, 135, 369) },
-  { id: 'BL4-105', nome: 'Lab. informática 2', tipo: 'lab', pontos: rect(10, 415, 67.5, 476.5) },
-  { id: 'BL4-106', nome: 'Biblioteca', tipo: 'servico', pontos: rect(67.5, 415, 157.5, 476.5) },
-  { id: 'BL4-107', nome: 'Cantina', tipo: 'servico', pontos: [[233.5, 247.5], [260, 206], [277.5, 206], [277.5, 250]] },
-  { id: 'BL4-108', nome: 'Secretaria', tipo: 'servico', pontos: rect(233.5, 312.5, 277.5, 374) },
-  { id: 'BL4-109', nome: 'Sala 109', tipo: 'sala', pontos: rect(233.5, 250, 277.5, 292.5) },
-  { id: 'BL4-110', nome: 'Sala 110', tipo: 'sala', pontos: rect(233.5, 374, 277.5, 414) },
-  { id: 'BL4-111', nome: 'Sala 111', tipo: 'sala', pontos: rect(296, 231, 336, 332.5) },
-  { id: 'BL4-112', nome: 'Sala 112', tipo: 'sala', pontos: rect(377.5, 332.5, 417.5, 414) },
-  { id: 'BL4-113', nome: 'Sala 113', tipo: 'sala', pontos: rect(235, 436.5, 416, 476) },
-  { id: 'BL4-114', nome: 'Sala 114', tipo: 'sala', pontos: [[80, 98.5], [135, 132.5], [111, 170], [60, 150]] },
+  { id: 'BL4-101', nome: 'Sala 101', tipo: 'sala', imagem_url: imagemSala('BL4-101'), pontos: rect(32.5, 216.5, 135, 268.5) },
+  { id: 'BL4-102', nome: 'Auditório', tipo: 'sala', imagem_url: imagemSala('BL4-102'), pontos: rect(32.5, 268.5, 135, 317) },
+  { id: 'BL4-103', nome: 'Lab. informática 7', tipo: 'lab', imagem_url: imagemSala('BL4-103'), pontos: rect(32.5, 317, 102.5, 369) },
+  { id: 'BL4-104', nome: 'Sala 104', tipo: 'sala', imagem_url: imagemSala('BL4-104'), pontos: rect(102.5, 317, 135, 369) },
+  { id: 'BL4-105', nome: 'Lab. informática 2', tipo: 'lab', imagem_url: imagemSala('BL4-105'), pontos: rect(10, 415, 67.5, 476.5) },
+  { id: 'BL4-106', nome: 'Biblioteca', tipo: 'servico', imagem_url: imagemSala('BL4-106'), pontos: rect(67.5, 415, 157.5, 476.5) },
+  { id: 'BL4-107', nome: 'Cantina', tipo: 'servico', imagem_url: imagemSala('BL4-107'), pontos: [[233.5, 247.5], [260, 206], [277.5, 206], [277.5, 250]] },
+  { id: 'BL4-108', nome: 'Secretaria', tipo: 'servico', imagem_url: imagemSala('BL4-108'), pontos: rect(233.5, 312.5, 277.5, 374) },
+  { id: 'BL4-109', nome: 'Sala 109', tipo: 'sala', imagem_url: imagemSala('BL4-109'), pontos: rect(233.5, 250, 277.5, 292.5) },
+  { id: 'BL4-110', nome: 'Sala 110', tipo: 'sala', imagem_url: imagemSala('BL4-110'), pontos: rect(233.5, 374, 277.5, 414) },
+  { id: 'BL4-111', nome: 'Sala 111', tipo: 'sala', imagem_url: imagemSala('BL4-111'), pontos: rect(296, 231, 336, 332.5) },
+  { id: 'BL4-112', nome: 'Sala 112', tipo: 'sala', imagem_url: imagemSala('BL4-112'), pontos: rect(377.5, 332.5, 417.5, 414) },
+  { id: 'BL4-113', nome: 'Sala 113', tipo: 'sala', imagem_url: imagemSala('BL4-113'), pontos: rect(235, 436.5, 416, 476) },
+  { id: 'BL4-114', nome: 'Sala 114', tipo: 'sala', imagem_url: imagemSala('BL4-114'), pontos: [[80, 98.5], [135, 132.5], [111, 170], [60, 150]] },
 ].map((r) => ({ ...r, pontos: AUTO[r.id] ?? r.pontos.map(([x, y]) => [+(x * K).toFixed(1), +(y * K).toFixed(1)]) }));
