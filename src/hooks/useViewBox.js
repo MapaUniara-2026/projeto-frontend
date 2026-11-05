@@ -57,5 +57,5 @@ export function useViewBox(base) {
     setVb({ x: (bbox.x1 + bbox.x2) / 2 - w / 2, y: (bbox.y1 + bbox.y2) / 2 - h / 2, w, h });
   };
 
-  return { vb, svgRef, handlers, moved, zoomIn: () => zoomAt(1 / 1.3), zoomOut: () => zoomAt(1.3), reset, centerOn };
+  return { vb, setVb, svgRef, handlers, drag, moved, zoomIn: () => zoomAt(1 / 1.3), zoomOut: () => zoomAt(1.3), reset, centerOn };
 }

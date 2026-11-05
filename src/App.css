@@ -155,22 +155,108 @@
 .lista li { display: flex; gap: 10px; padding: 8px 10px; background: #f6f8fb; border-radius: 6px; }
 .hora { font-variant-numeric: tabular-nums; color: var(--azul); white-space: nowrap; }
 
+/* ---------- Fotografia da sala ---------- */
+/* Vale para a foto do painel (.room-photo) e para o componente de carregamento/erro (.image-status). */
+.room-photo { margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.room-photo img,
+.room-photo .image-status {
+  display: block; width: 100%; max-width: 100%; height: auto;
+  aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; background: #f4f7fb;
+}
+.room-photo .image-status img { aspect-ratio: auto; height: 100%; border-radius: 0; }
+.room-photo figcaption { font-size: 11px; color: var(--suave); overflow-wrap: anywhere; }
+
 /* ---------- Responsivo ---------- */
 @media (max-width: 1100px) {
   .topbar-title { display: none; }
 }
+
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; grid-template-rows: 62px auto auto; height: auto; min-height: 100%; }
-  .sidebar { border-right: 0; border-bottom: 1px solid var(--borda); }
+  .sidebar { border-right: 0; border-bottom: 1px solid var(--borda); padding: 16px; }
   .sidebar-footer { margin-top: 12px; }
+  /* Cursos lado a lado para o painel de filtros não empurrar a planta tão para baixo */
+  .sidebar { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); column-gap: 12px; row-gap: 4px; }
+  .sidebar > :not(.check) { grid-column: 1 / -1; }
+  .search input { font-size: 16px; } /* evita o zoom automático do iPhone ao tocar na busca */
+
   .main-head { flex-wrap: wrap; }
+  .tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .tabs button { white-space: nowrap; }
+
   .content { grid-template-columns: 1fr; }
-  .plan-card { height: 60vh; }
+  .plan-card { height: 60vh; height: min(60dvh, 560px); min-height: 280px; scroll-margin-top: 8px; }
+  .plan-hint { flex-basis: 100%; margin-left: 0; }
+
+  /* Sem sala selecionada a dica já aparece na barra da planta */
+  .details.empty { display: none; }
+
+  /* Painel da sala vira um painel inferior (bottom sheet) sobre a planta */
+  .details:not(.empty) {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    max-height: 50vh; max-height: 50dvh;
+    border-radius: 16px 16px 0 0; border-bottom: 0;
+    box-shadow: 0 -8px 28px rgba(15, 35, 70, .18);
+    padding-bottom: env(safe-area-inset-bottom);
+    overscroll-behavior: contain;
+    animation: sheet-up .2s ease-out;
+  }
+  .details:not(.empty) .details-head { position: sticky; top: 0; z-index: 1; padding-top: 18px; }
+  .details:not(.empty) .details-head::before {
+    content: ''; position: absolute; top: 7px; left: 50%; width: 36px; height: 4px;
+    margin-left: -18px; border-radius: 2px; background: #b9c7da;
+  }
+  .details-head h2 { margin-top: 4px; }
+  /* A foto acompanha a altura disponível no painel sem cortar as laterais */
+  .room-photo { width: min(100%, calc(28dvh * 4 / 3)); margin-inline: auto; }
+  .plan-toolbar { gap: 4px 12px; padding: 8px 12px; }
+  /* Espaço no fim da página para o painel não esconder o conteúdo */
+  .app:has(.details:not(.empty)) .main { padding-bottom: calc(50dvh + 16px); }
 }
+
 @media (max-width: 480px) {
   .topbar { gap: 10px; padding: 0 12px; }
   .brand { padding-right: 0; border-right: 0; }
   .unit-pill { display: none; }
   .main { padding: 14px 12px; }
-  .plan-hint { margin-left: 0; }
+  .main-head h1 { font-size: 18px; }
+  .info-grid { grid-template-columns: 1fr; }
+  .details:not(.empty) { max-height: 55vh; max-height: 55dvh; }
+}
+
+/* Celular deitado: pouca altura, então o painel da sala vai para a lateral direita */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  .plan-card { height: 85vh; height: 85dvh; }
+  .details:not(.empty) {
+    left: auto; top: 0; width: min(340px, 45vw); max-height: none;
+    border-radius: 16px 0 0 16px; border-left: 1px solid var(--borda);
+    box-shadow: -8px 0 28px rgba(15, 35, 70, .18);
+    animation-name: sheet-left;
+  }
+  .details:not(.empty) .details-head::before { display: none; }
+  .app:has(.details:not(.empty)) .main { padding-bottom: 14px; padding-right: calc(min(340px, 45vw) + 12px); }
+  .room-photo { width: 100%; }
+}
+
+/* Telas de toque: áreas de toque de pelo menos 40–44px */
+@media (pointer: coarse) {
+  .zoom { top: 10px; right: 10px; }
+  .zoom button { width: 44px; height: 44px; }
+  .icon-button { width: 40px; height: 40px; }
+  .icon-button.round { width: 40px; height: 40px; }
+  .tabs button { min-height: 40px; padding: 8px 14px; }
+  .chip { min-height: 40px; padding: 8px 14px; }
+  .check { min-height: 40px; }
+  .check input { width: 18px; height: 18px; }
+  .legend { min-height: 32px; }
+  .legend input { width: 18px; height: 18px; }
+  .btn { min-height: 44px; }
+  .search { min-height: 44px; }
+  .search kbd { display: none; } /* atalho de teclado não existe no celular */
+}
+
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheet-left { from { transform: translateX(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .details:not(.empty) { animation: none; }
 }
