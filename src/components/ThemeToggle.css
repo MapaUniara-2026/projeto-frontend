@@ -1,0 +1,48 @@
+.theme-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  width: 64px;
+  height: 32px;
+  padding: 3px;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: var(--branco);
+  transition: background-color .3s, border-color .3s;
+}
+.theme-toggle:hover { border-color: #b9c7da; }
+
+.theme-toggle-knob,
+.theme-toggle-other {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: transform .3s, background-color .3s, color .3s;
+}
+
+/* Claro: o sol fica na bolinha à direita e a lua à esquerda. */
+.theme-toggle-knob { transform: translateX(32px); background: var(--azul-claro); color: var(--azul); }
+.theme-toggle-other { transform: translateX(-32px); color: var(--suave); }
+
+/* Escuro: a bolinha desliza para a esquerda e passa a mostrar a lua. */
+.theme-toggle.dark:hover { border-color: #3d4a5e; }
+.theme-toggle.dark .theme-toggle-knob { transform: translateX(0); background: #23395a; color: #e4e9f1; }
+.theme-toggle.dark .theme-toggle-other { transform: translateX(0); color: var(--suave); }
+
+/* Celular: botão um pouco menor para caber ao lado da ajuda. */
+@media (max-width: 480px) {
+  .theme-toggle { width: 56px; height: 30px; }
+  .theme-toggle-knob,
+  .theme-toggle-other { width: 22px; height: 22px; }
+  .theme-toggle-knob { transform: translateX(26px); }
+  .theme-toggle-other { transform: translateX(-26px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .theme-toggle-knob,
+  .theme-toggle-other { transition: none; }
+}

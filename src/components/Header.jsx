@@ -1,4 +1,5 @@
 import Icon from './Icon.jsx'
+import ThemeToggle from './ThemeToggle.jsx'
 
 export default function Header({ unidade }) {
   return (
@@ -13,6 +14,7 @@ export default function Header({ unidade }) {
       <span className="topbar-title">Mapa Interativo — {unidade}</span>
 
       <div className="topbar-actions">
+        <ThemeToggle />
         <span className="unit-pill">
           <Icon name="pin" size={16} />
           {unidade}
