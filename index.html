@@ -5,6 +5,14 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mapa Interativo — Uniara</title>
+    <script>
+      // Aplica o tema antes da página aparecer (evita piscar branco no modo escuro). Ver ThemeToggle.jsx.
+      try {
+        var tema = localStorage.getItem('tema')
+        var escuro = tema ? tema === 'escuro' : window.matchMedia('(prefers-color-scheme: dark)').matches
+        document.documentElement.dataset.theme = escuro ? 'dark' : 'light'
+      } catch (e) {}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />

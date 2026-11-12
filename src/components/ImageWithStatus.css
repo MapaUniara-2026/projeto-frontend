@@ -1,0 +1,88 @@
+/* Contêiner fluido: ocupa a largura disponível e mantém a proporção da imagem em qualquer tela. */
+.image-status {
+  --image-status-ratio: 16 / 9;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 120px;
+  aspect-ratio: var(--image-status-ratio);
+  overflow: hidden;
+  background: #f4f7fb;
+  color: var(--suave, #6b778a);
+  border-radius: 8px;
+}
+
+.image-status-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  transition: opacity .2s ease;
+}
+
+.image-status-img-loading {
+  opacity: 0;
+}
+
+.image-status-loading,
+.image-status-unavailable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: clamp(10px, 4%, 16px);
+  text-align: center;
+  font-size: clamp(12px, 0.75rem + 0.25vw, 13px);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.image-status-loading {
+  position: absolute;
+  inset: 0;
+  flex-wrap: wrap;
+}
+
+.image-status-unavailable {
+  flex-direction: column;
+  border: 1px dashed var(--borda, #dfe6f0);
+}
+
+.image-status-symbol {
+  font-size: clamp(20px, 1.2rem + 0.6vw, 26px);
+  line-height: 1;
+}
+
+.image-status-spinner {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border: 2px solid #c9d8ed;
+  border-top-color: var(--azul, #1257b5);
+  border-radius: 50%;
+  animation: image-status-spin 0.8s linear infinite;
+}
+
+@keyframes image-status-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Telas pequenas: altura mínima e espaçamentos menores para não ocupar a tela toda. */
+@media (max-width: 480px) {
+  .image-status { min-height: 96px; border-radius: 6px; }
+  .image-status-loading,
+  .image-status-unavailable { gap: 6px; }
+  .image-status-spinner { width: 16px; height: 16px; flex-basis: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-status-spinner { animation: none; }
+  .image-status-img { transition: none; }
+}

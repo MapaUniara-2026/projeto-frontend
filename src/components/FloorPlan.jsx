@@ -34,7 +34,7 @@ const FloorPlan = forwardRef(function FloorPlan({ planta, rooms, destaque, selec
           ref={svgRef}
           className={`plan ${mostrar.salas ? 'show-salas' : ''} ${mostrar.servicos ? 'show-servicos' : ''}`}
           viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
-          role="img"
+          role="group"
           aria-label={`Planta do ${andar}`}
           {...handlers}
         >
