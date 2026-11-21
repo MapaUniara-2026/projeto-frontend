@@ -19,8 +19,9 @@ export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, a
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const alternaCurso = (c) => setRascunho((f) => ({
-    ...f, cursos: f.cursos.includes(c) ? f.cursos.filter((x) => x !== c) : [...f.cursos, c],
+  // `cursos` guarda siglas (SI, EC, IA) para enviar direto ao contrato da API.
+  const alternaCurso = (sigla) => setRascunho((f) => ({
+    ...f, cursos: f.cursos.includes(sigla) ? f.cursos.filter((x) => x !== sigla) : [...f.cursos, sigla],
   }))
   const alterna = (campo, v) => setRascunho((f) => ({ ...f, [campo]: f[campo] === v ? null : v }))
 
@@ -43,10 +44,10 @@ export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, a
       </label>
 
       <h3>Curso</h3>
-      {CURSOS.map((c) => (
-        <label key={c} className="check">
-          <input type="checkbox" checked={rascunho.cursos.includes(c)} onChange={() => alternaCurso(c)} />
-          {c}
+      {CURSOS.map(({ sigla, nome }) => (
+        <label key={sigla} className="check">
+          <input type="checkbox" checked={rascunho.cursos.includes(sigla)} onChange={() => alternaCurso(sigla)} />
+          {nome}
         </label>
       ))}
 

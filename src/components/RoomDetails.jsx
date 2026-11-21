@@ -3,7 +3,7 @@ import { getInfoSala } from '../data/salas-info.js'
 import Icon from './Icon.jsx'
 
 const SEM_INFO = 'Informação não disponível'
-const ICONE_PERIODO = { manhã: 'sunrise', tarde: 'sun', noite: 'moon' }
+const ICONE_PERIODO = { MATUTINO: 'sunrise', VESPERTINO: 'sun', NOTURNO: 'moon' }
 const TIPO_LABEL = { sala: 'Sala de aula', lab: 'Laboratório', servico: 'Serviço' }
 
 // Painel lateral direito com os dados da sala selecionada.

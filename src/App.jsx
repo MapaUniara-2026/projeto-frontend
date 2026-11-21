@@ -17,8 +17,9 @@ const versao = __APP_VERSION__
 const SEM_FILTRO = { cursos: [], dia: null, periodo: null }
 const norm = (s) => (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
+// Filtros estão no formato do contrato (cursos = siglas; dia/período em MAIÚSCULAS).
 const bateFiltro = (aula, f) =>
-  (!f.cursos.length || f.cursos.includes(aula.curso)) &&
+  (!f.cursos.length || f.cursos.includes(aula.cursoSigla)) &&
   (!f.dia || aula.dia === f.dia) &&
   (!f.periodo || periodoDe(aula.inicio) === f.periodo)
 
@@ -47,7 +48,8 @@ function App() {
   const [saude, setSaude] = useState({ status: 'carregando' })
   const planRef = useRef(null)
 
-  const { aulas: AULAS, origem, carregando, erro, atualizadoEm, refetch } = useAulas()
+  // Envia os filtros aplicados à API via query string (curso = sigla; dia = SEGUNDA...; periodo = MATUTINO...).
+  const { aulas: AULAS, origem, carregando, erro, atualizadoEm, refetch } = useAulas({ filtros })
 
   useEffect(() => {
     api('/api/health')
