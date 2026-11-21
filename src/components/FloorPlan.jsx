@@ -1,18 +1,29 @@
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import { usePinchZoom } from '../hooks/usePinchZoom.js'
 import { useViewBox } from '../hooks/useViewBox.js'
 import Icon from './Icon.jsx'
 
 // Planta vetorial (SVG) com salas clicáveis, zoom pela roda do mouse e arrastar para mover.
 const FloorPlan = forwardRef(function FloorPlan({ planta, rooms, destaque, selecionada, onSelect, andar }, ref) {
-  const { vb, svgRef, handlers, moved, zoomIn, zoomOut, reset, centerOn } = useViewBox(planta.viewBox)
-  useImperativeHandle(ref, () => ({ centerOn }))
+  const { vb, setVb, svgRef, handlers, drag, moved, zoomIn, zoomOut, reset, centerOn } = useViewBox(planta.viewBox)
+  usePinchZoom({ svgRef, setVb, drag, moved, base: planta.viewBox })
+  const cardRef = useRef(null)
+  useImperativeHandle(ref, () => ({
+    centerOn: (bbox) => {
+      centerOn(bbox)
+      // Em telas pequenas o painel da sala cobre parte da tela: rola até a planta para a sala centralizada ficar visível.
+      if (window.matchMedia('(max-width: 900px)').matches) {
+        cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    },
+  }))
   // Legenda: liga/desliga o preenchimento de cada tipo de ambiente na planta.
   const [mostrar, setMostrar] = useState({ salas: false, servicos: false })
   const temDestaque = destaque !== null
   const nomeSelecionada = rooms.find((r) => r.id === selecionada)?.nome
 
   return (
-    <section className="plan-card" aria-label={`Planta do ${andar}`}>
+    <section ref={cardRef} className="plan-card" aria-label={`Planta do ${andar}`}>
       <div className="plan-toolbar">
         <label className="legend legend-salas">
           <input type="checkbox" checked={mostrar.salas} onChange={(e) => setMostrar((m) => ({ ...m, salas: e.target.checked }))} />
