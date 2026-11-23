@@ -30,9 +30,9 @@ export default function useAulas({ filtros, pollMs = 0 } = {}) {
     try {
       const caminho = query ? `/api/aulas?${query}` : '/api/aulas'
       const dados = await api(caminho, { signal: ctrl.signal })
-      const lista = Array.isArray(dados) ? dados.map(normalizar) : []
-      if (!lista.length) throw new Error('API retornou lista vazia de aulas')
-      setAulas(lista)
+      if (!Array.isArray(dados)) throw new Error('Resposta inesperada da API de aulas')
+      // Lista vazia é resposta válida (nenhuma aula para o filtro, RF15): não cai no mock.
+      setAulas(dados.map(normalizar))
       setOrigem('api')
       setAtualizadoEm(new Date())
     } catch (e) {
@@ -62,10 +62,13 @@ export default function useAulas({ filtros, pollMs = 0 } = {}) {
 
 // Monta a query string no formato do contrato da API.
 // Aceita cursos como array de siglas; dia/período já em MAIÚSCULAS (SEGUNDA, MATUTINO...).
+// A API aceita um curso por consulta (?curso=SI&curso=EC responde 400). Com dois ou mais,
+// a busca vai sem curso e o App filtra localmente (bateFiltro, em App.jsx).
 function montarQuery(filtros) {
   if (!filtros) return ''
   const qs = new URLSearchParams()
-  if (Array.isArray(filtros.cursos)) filtros.cursos.forEach((sigla) => sigla && qs.append('curso', sigla))
+  const cursos = Array.isArray(filtros.cursos) ? filtros.cursos.filter(Boolean) : []
+  if (cursos.length === 1) qs.set('curso', cursos[0])
   if (filtros.dia) qs.set('dia', filtros.dia)
   if (filtros.periodo) qs.set('periodo', filtros.periodo)
   return qs.toString()
@@ -76,7 +79,7 @@ function montarQuery(filtros) {
 function normalizar(a) {
   return {
     sala: a.sala?.codigo ?? a.sala ?? '',
-    disciplina: a.disciplina ?? '',
+    disciplina: a.disciplina?.nome ?? a.disciplina ?? '',
     curso: a.curso?.nome ?? '',
     cursoSigla: a.curso?.sigla ?? null,
     semestre: a.turma?.semestre ?? null,
