@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { CURSOS, DIAS, DIA_LABEL, PERIODOS, PERIODO_LABEL } from '../data/aulas.js'
+import { DIAS, DIA_LABEL, PERIODOS, PERIODO_LABEL } from '../data/aulas.js'
 import Icon from './Icon.jsx'
 
 // Tela "Localizar aula" (tela front/tela.html) convertida para React.
 // Os filtros ficam num rascunho e só valem para o mapa ao clicar em "Aplicar filtros".
-export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, aplicar, limpar, rodape }) {
+export default function FiltersPanel({ cursos = [], busca, setBusca, rascunho, setRascunho, aplicar, limpar, rodape }) {
   const buscaRef = useRef(null)
 
   // Atalho ⌘K / Ctrl+K foca a busca, como indicado no campo.
@@ -43,7 +43,7 @@ export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, a
       </label>
 
       <h3>Curso</h3>
-      {CURSOS.map((c) => (
+      {cursos.map((c) => (
         <label key={c} className="check">
           <input type="checkbox" checked={rascunho.cursos.includes(c)} onChange={() => alternaCurso(c)} />
           {c}

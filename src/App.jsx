@@ -4,7 +4,7 @@ import FiltersPanel from './components/FiltersPanel.jsx'
 import FloorPlan from './components/FloorPlan.jsx'
 import Header from './components/Header.jsx'
 import RoomDetails from './components/RoomDetails.jsx'
-import { AULAS, DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
+import { DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
 import { ANDARES, ANDAR_INICIAL, UNIDADE } from './data/andares/index.js'
 import { api } from './services/api'
 import './App.css'
@@ -29,7 +29,41 @@ function App() {
   const [selecionada, setSelecionada] = useState(null)
   const [andar, setAndar] = useState(ANDAR_INICIAL)
   const [saude, setSaude] = useState({ status: 'carregando' })
+  const [aulas, setAulas] = useState([])
+  const [estadoAulas, setEstadoAulas] = useState('carregando')
+  const [tentativa, setTentativa] = useState(0)
   const planRef = useRef(null)
+
+  useEffect(() => {
+    let ativo = true
+    setEstadoAulas('carregando')
+    api('/api/aulas')
+      .then((resposta) => {
+        const registros = Array.isArray(resposta) ? resposta : resposta?.aulas
+        if (!Array.isArray(registros)) throw new Error('Formato de resposta inválido em /api/aulas')
+        const normalizadas = registros.map((a) => ({
+          sala: a.sala?.codigo,
+          disciplina: a.turma?.nome ?? a.turma?.codigo ?? 'Aula',
+          curso: a.curso?.nome ?? a.turma?.curso?.nome ?? '',
+          semestre: a.turma?.semestre,
+          professor: a.professor?.nome ?? a.turma?.professor?.nome ?? null,
+          dia: ({ SEGUNDA: 'segunda', TERCA: 'terça', QUARTA: 'quarta', QUINTA: 'quinta', SEXTA: 'sexta' })[a.diaSemana],
+          inicio: a.horaInicio,
+          fim: a.horaTermino,
+        })).filter((a) => a.sala && a.dia && a.inicio && a.fim)
+        if (ativo) {
+          setAulas(normalizadas)
+          setEstadoAulas('ok')
+        }
+      })
+      .catch(() => {
+        if (ativo) {
+          setAulas([])
+          setEstadoAulas('erro')
+        }
+      })
+    return () => { ativo = false }
+  }, [tentativa])
 
   useEffect(() => {
     api('/api/health')
@@ -46,15 +80,15 @@ function App() {
   // null = nenhum filtro/busca (todas as salas aparecem normais).
   const destaque = useMemo(() => {
     if (!filtroAtivo && !termo) return null
-    const comAula = new Set(AULAS.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
+    const comAula = new Set(aulas.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
     const q = norm(termo)
     return new Set(salas
       .filter((r) => (!filtroAtivo || comAula.has(r.id)) && (!termo || norm(r.nome).includes(q) || norm(r.id).includes(q)))
       .map((r) => r.id))
-  }, [filtros, filtroAtivo, termo, salas])
+  }, [aulas, filtros, filtroAtivo, termo, salas])
 
   const sala = salas.find((r) => r.id === selecionada) ?? null
-  const aulasDaSala = AULAS.filter((a) => a.sala === selecionada)
+  const aulasDaSala = aulas.filter((a) => a.sala === selecionada)
   const aulaAtual = aulasDaSala.find((a) => emAndamento(a, now)) ?? null
   const aulaFiltrada = filtroAtivo ? aulasDaSala.find((a) => bateFiltro(a, filtros)) ?? null : null
   const aula = aulaAtual ?? aulaFiltrada
@@ -72,6 +106,7 @@ function App() {
       <Header unidade={UNIDADE} />
 
       <FiltersPanel
+        cursos={[...new Set(aulas.map((a) => a.curso).filter(Boolean))].sort()}
         busca={busca}
         setBusca={setBusca}
         rascunho={rascunho}
@@ -121,6 +156,19 @@ function App() {
           resultCount={destaque?.size ?? 0}
           floor={andar.id === 'terreo' ? 'térreo' : andar.nome}
         />
+
+        {estadoAulas === 'erro' && (
+          <div className="api-error" role="alert">
+            <div>
+              <strong>Não foi possível carregar as aulas</strong>
+              <p>Verifique sua conexão e tente novamente.</p>
+            </div>
+            <button type="button" className="btn primary" onClick={() => setTentativa((n) => n + 1)}>Tentar novamente</button>
+          </div>
+        )}
+        {estadoAulas === 'carregando' && (
+          <p className="api-loading" role="status">Carregando aulas...</p>
+        )}
 
         <div className="content">
           <FloorPlan
