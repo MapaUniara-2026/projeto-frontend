@@ -34,3 +34,34 @@ h1, h2, h3, h4, p { margin: 0; }
 .muted, small { color: var(--suave); }
 small { font-size: 12px; }
 .icon { flex-shrink: 0; }
+
+/* ---------- Tema escuro (ativado pelo botão de tema no cabeçalho) ---------- */
+:root[data-theme='dark'] {
+  --azul: #3f86e8;
+  --azul-escuro: #2f6fcc;
+  --azul-claro: #1a2a42;
+  --fundo: #0f141c;
+  --borda: #2a3342;
+  --texto: #e4e9f1;
+  --suave: #9aa6b8;
+  --ambar: #3d3214;
+  --ambar-texto: #f2c75c;
+  --verde: #14301f;
+  --verde-texto: #5fd08a;
+  --branco: #171d27;
+
+  color-scheme: dark;
+}
+/* Cores que estão fixas no CSS dos componentes */
+:root[data-theme='dark'] .search { background: #11161f; }
+:root[data-theme='dark'] .chip:hover { border-color: #3d4a5e; }
+:root[data-theme='dark'] .tag { background: #23395a; }
+:root[data-theme='dark'] .lista li { background: #1e2531; }
+:root[data-theme='dark'] .planta { fill: #c9d2e0; }
+:root[data-theme='dark'] .room.dim { fill: rgba(15, 20, 28, .6); }
+:root[data-theme='dark'] .room.selected { stroke: #8fbaf5; }
+:root[data-theme='dark'] .active-filters { border-color: var(--borda); background: var(--branco); color: var(--suave); }
+:root[data-theme='dark'] .active-filters__icon { color: var(--azul); }
+:root[data-theme='dark'] .active-filters__chip { background: #1e2531; }
+:root[data-theme='dark'] .active-filters__chip--highlighted { background: var(--azul-claro); color: #8fbaf5; }
+:root[data-theme='dark'] .active-filters__results { color: var(--suave); }
