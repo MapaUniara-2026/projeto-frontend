@@ -65,3 +65,7 @@ small { font-size: 12px; }
 :root[data-theme='dark'] .active-filters__chip { background: #1e2531; }
 :root[data-theme='dark'] .active-filters__chip--highlighted { background: var(--azul-claro); color: #8fbaf5; }
 :root[data-theme='dark'] .active-filters__results { color: var(--suave); }
+:root[data-theme='dark'] .image-status,
+:root[data-theme='dark'] .room-photo img { background: var(--fundo); }
+:root[data-theme='dark'] .image-status-spinner { border-color: var(--borda); border-top-color: var(--azul); }
+:root[data-theme='dark'] .api-error { border-color: #6b2e2e; background: #2a1618; color: #f2a5a5; }
