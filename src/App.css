@@ -260,3 +260,18 @@
 @media (prefers-reduced-motion: reduce) {
   .details:not(.empty) { animation: none; }
 }
+
+
+/* Estados de carregamento e falha da API de aulas. */
+.api-error {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 16px; border: 1px solid #e4a3a3; border-radius: 8px;
+  background: #fff5f5; color: #8f2525;
+}
+.api-error strong { display: block; font-size: 14px; }
+.api-error p { margin-top: 4px; font-size: 12px; }
+.api-error .btn { flex-shrink: 0; }
+.api-loading { padding: 10px 0; color: var(--suave); font-size: 13px; }
+@media (max-width: 560px) {
+  .api-error { align-items: flex-start; flex-direction: column; }
+}
