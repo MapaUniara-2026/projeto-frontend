@@ -4,7 +4,7 @@ import FiltersPanel from './components/FiltersPanel.jsx'
 import FloorPlan from './components/FloorPlan.jsx'
 import Header from './components/Header.jsx'
 import RoomDetails from './components/RoomDetails.jsx'
-import { AULAS, DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
+import { DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
 import { ANDARES, ANDAR_INICIAL, UNIDADE } from './data/andares/index.js'
 import { api } from './services/api'
 import './App.css'
@@ -15,6 +15,8 @@ const versao = __APP_VERSION__
 
 const SEM_FILTRO = { cursos: [], dia: null, periodo: null }
 const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+const DIA_DA_API = { SEGUNDA: 'segunda', TERCA: 'terça', QUARTA: 'quarta', QUINTA: 'quinta', SEXTA: 'sexta' }
 
 const bateFiltro = (aula, f) =>
   (!f.cursos.length || f.cursos.includes(aula.curso)) &&
@@ -29,7 +31,44 @@ function App() {
   const [selecionada, setSelecionada] = useState(null)
   const [andar, setAndar] = useState(ANDAR_INICIAL)
   const [saude, setSaude] = useState({ status: 'carregando' })
+  const [aulas, setAulas] = useState([])
+  const [estadoAulas, setEstadoAulas] = useState('carregando')
+  const [tentativa, setTentativa] = useState(0)
   const planRef = useRef(null)
+
+  useEffect(() => {
+    let ativo = true
+    setEstadoAulas('carregando')
+    api('/api/aulas')
+      .then((resposta) => {
+        const registros = Array.isArray(resposta) ? resposta : resposta?.aulas
+        if (!Array.isArray(registros)) throw new Error('Formato de resposta inválido em /api/aulas')
+        // Converte o formato do contrato da API (seção 2.1) para o usado pelos componentes.
+        const normalizadas = registros.map((a) => ({
+          sala: a.sala?.codigo,
+          disciplina: a.disciplina?.nome ?? null,
+          curso: a.curso?.nome ?? '',
+          cursoSigla: a.curso?.sigla ?? null,
+          turma: a.turma ?? null,
+          semestre: a.turma?.semestre ?? null,
+          professor: a.professor?.nome ?? null,
+          dia: DIA_DA_API[a.diaSemana],
+          inicio: a.horaInicio,
+          fim: a.horaTermino,
+        })).filter((a) => a.sala && a.dia && a.inicio && a.fim)
+        if (ativo) {
+          setAulas(normalizadas)
+          setEstadoAulas('ok')
+        }
+      })
+      .catch(() => {
+        if (ativo) {
+          setAulas([])
+          setEstadoAulas('erro')
+        }
+      })
+    return () => { ativo = false }
+  }, [tentativa])
 
   useEffect(() => {
     api('/api/health')
@@ -42,19 +81,31 @@ function App() {
 
   const salas = andar.salas
 
-  // Salas do andar atual destacadas na planta: as que têm aula nos filtros aplicados E batem com a busca.
+  // Para cada andar, as salas que têm aula nos filtros aplicados E batem com a busca.
   // null = nenhum filtro/busca (todas as salas aparecem normais).
-  const destaque = useMemo(() => {
+  const resultadosPorAndar = useMemo(() => {
     if (!filtroAtivo && !termo) return null
-    const comAula = new Set(AULAS.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
+    const comAula = new Set(aulas.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
     const q = norm(termo)
-    return new Set(salas
+    return new Map(ANDARES.map((a) => [a.id, new Set(a.salas
       .filter((r) => (!filtroAtivo || comAula.has(r.id)) && (!termo || norm(r.nome).includes(q) || norm(r.id).includes(q)))
-      .map((r) => r.id))
-  }, [filtros, filtroAtivo, termo, salas])
+      .map((r) => r.id))]))
+  }, [aulas, filtros, filtroAtivo, termo])
+
+  const destaque = resultadosPorAndar?.get(andar.id) ?? null
+  const totalResultados = resultadosPorAndar ? [...resultadosPorAndar.values()].reduce((n, ids) => n + ids.size, 0) : 0
+  const outrosAndares = resultadosPorAndar
+    ? ANDARES.filter((a) => a.id !== andar.id && resultadosPorAndar.get(a.id).size > 0)
+    : []
+
+  const irParaAndar = (a) => {
+    setAndar(a)
+    const ids = resultadosPorAndar?.get(a.id)
+    setSelecionada(ids && ids.size === 1 ? [...ids][0] : null)
+  }
 
   const sala = salas.find((r) => r.id === selecionada) ?? null
-  const aulasDaSala = AULAS.filter((a) => a.sala === selecionada)
+  const aulasDaSala = aulas.filter((a) => a.sala === selecionada)
   const aulaAtual = aulasDaSala.find((a) => emAndamento(a, now)) ?? null
   const aulaFiltrada = filtroAtivo ? aulasDaSala.find((a) => bateFiltro(a, filtros)) ?? null : null
   const aula = aulaAtual ?? aulaFiltrada
@@ -72,6 +123,7 @@ function App() {
       <Header unidade={UNIDADE} />
 
       <FiltersPanel
+        cursos={[...new Set(aulas.map((a) => a.curso).filter(Boolean))].sort()}
         busca={busca}
         setBusca={setBusca}
         rascunho={rascunho}
@@ -103,11 +155,10 @@ function App() {
                 role="tab"
                 className={a.id === andar.id ? 'on' : ''}
                 aria-selected={a.id === andar.id}
-                disabled={!a.planta}
-                title={!a.planta ? 'Planta ainda não importada' : undefined}
                 onClick={() => { setAndar(a); setSelecionada(null) }}
               >
                 {a.nome}
+                {resultadosPorAndar && <span className="tab-count">{resultadosPorAndar.get(a.id).size}</span>}
               </button>
             ))}
           </div>
@@ -121,6 +172,37 @@ function App() {
           resultCount={destaque?.size ?? 0}
           floor={andar.id === 'terreo' ? 'térreo' : andar.nome}
         />
+
+        {estadoAulas === 'erro' && (
+          <div className="api-error" role="alert">
+            <div>
+              <strong>Não foi possível carregar as aulas</strong>
+              <p>Verifique sua conexão e tente novamente.</p>
+            </div>
+            <button type="button" className="btn primary" onClick={() => setTentativa((n) => n + 1)}>Tentar novamente</button>
+          </div>
+        )}
+        {estadoAulas === 'ok' && resultadosPorAndar && destaque.size === 0 && (
+          <div className="sem-resultados" role="status">
+            <div>
+              <strong>{totalResultados === 0 ? 'Nenhuma aula encontrada para os filtros selecionados' : `Nenhum resultado no ${andar.nome.toLowerCase()}`}</strong>
+              <p>{totalResultados === 0 ? 'Altere os filtros ou limpe-os para ver todas as salas.' : 'Há resultados em outros andares:'}</p>
+              {outrosAndares.length > 0 && (
+                <div className="chips">
+                  {outrosAndares.map((a) => (
+                    <button key={a.id} type="button" className="chip" onClick={() => irParaAndar(a)}>
+                      {a.nome} ({resultadosPorAndar.get(a.id).size})
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button type="button" className="btn ghost" onClick={limpar}>Limpar filtros</button>
+          </div>
+        )}
+        {estadoAulas === 'carregando' && (
+          <p className="api-loading" role="status">Carregando aulas...</p>
+        )}
 
         <div className="content">
           <FloorPlan

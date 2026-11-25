@@ -260,3 +260,35 @@
 @media (prefers-reduced-motion: reduce) {
   .details:not(.empty) { animation: none; }
 }
+
+
+/* Estados de carregamento e falha da API de aulas. */
+.api-error {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 16px; border: 1px solid #e4a3a3; border-radius: 8px;
+  background: #fff5f5; color: #8f2525;
+}
+.api-error strong { display: block; font-size: 14px; }
+.api-error p { margin-top: 4px; font-size: 12px; }
+.api-error .btn { flex-shrink: 0; }
+.api-loading { padding: 10px 0; color: var(--suave); font-size: 13px; }
+@media (max-width: 560px) {
+  .api-error { align-items: flex-start; flex-direction: column; }
+}
+
+/* Nenhum resultado para os filtros (RF15) e contagem de resultados por andar. */
+.sem-resultados {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 16px; border: 1px solid var(--borda); border-radius: 8px; background: var(--branco);
+}
+.sem-resultados strong { display: block; font-size: 14px; }
+.sem-resultados p { margin: 4px 0 6px; font-size: 12px; color: var(--suave); }
+.sem-resultados .btn { width: auto; margin-top: 0; flex-shrink: 0; }
+.tab-count {
+  display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px;
+  border-radius: 999px; background: var(--azul-claro); color: var(--azul); font-size: 11px; line-height: 18px;
+}
+.tabs .on .tab-count { background: rgba(255, 255, 255, .25); color: #fff; }
+@media (max-width: 560px) {
+  .sem-resultados { align-items: flex-start; flex-direction: column; }
+}
