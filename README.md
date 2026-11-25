@@ -58,11 +58,11 @@ Toda chamada à API passa por `src/services/api.js`. Use sempre ela, nunca `fetc
 
 Para simular um horário (ex.: ver salas "Ocupada agora"): `http://localhost:5173/?dia=segunda&hora=19:30`.
 
-### ⚠️ Pendências do mapa
+### Mapa
 
-- **Só o Térreo funciona hoje.** O 1º e o 2º andar aparecem nas abas, mas desabilitados, porque a planta deles ainda não foi entregue. O passo a passo para integrar está em **[docs/INTEGRAR-ANDARES.md](docs/INTEGRAR-ANDARES.md)**.
-- Confirmar com o time se essa planta é o "Térreo" (como no código) ou o "1º andar" (como no protótipo visual). Ver a seção *Divergência de nomenclatura* no mesmo documento.
-- Os nomes das salas "Sala 1xx" e as aulas em `src/data/aulas.js` são **dados de exemplo** até a integração com a API.
+- O mapa tem os quatro níveis da Unidade 4 (térreo, 1º, 2º e 3º andar), a partir das plantas em `tools/plantas/`. Como atualizar ou incluir um andar: **[docs/INTEGRAR-ANDARES.md](docs/INTEGRAR-ANDARES.md)**.
+- O `id` de cada área clicável é o código da sala no banco (ex.: `BL4-211`), o mesmo devolvido pela API. O inventário do back-end fica em `prisma/dados/salas.json`.
+- Aulas, cursos e fotos vêm da API (`/api/aulas`, `/api/salas/:codigo`). Se a API falhar, a tela mostra o erro com a opção de tentar de novo.
 
 ---
 

@@ -16,6 +16,8 @@ const versao = __APP_VERSION__
 const SEM_FILTRO = { cursos: [], dia: null, periodo: null }
 const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
+const DIA_DA_API = { SEGUNDA: 'segunda', TERCA: 'terça', QUARTA: 'quarta', QUINTA: 'quinta', SEXTA: 'sexta' }
+
 const bateFiltro = (aula, f) =>
   (!f.cursos.length || f.cursos.includes(aula.curso)) &&
   (!f.dia || aula.dia === f.dia) &&
@@ -41,13 +43,16 @@ function App() {
       .then((resposta) => {
         const registros = Array.isArray(resposta) ? resposta : resposta?.aulas
         if (!Array.isArray(registros)) throw new Error('Formato de resposta inválido em /api/aulas')
+        // Converte o formato do contrato da API (seção 2.1) para o usado pelos componentes.
         const normalizadas = registros.map((a) => ({
           sala: a.sala?.codigo,
-          disciplina: a.turma?.nome ?? a.turma?.codigo ?? 'Aula',
-          curso: a.curso?.nome ?? a.turma?.curso?.nome ?? '',
-          semestre: a.turma?.semestre,
-          professor: a.professor?.nome ?? a.turma?.professor?.nome ?? null,
-          dia: ({ SEGUNDA: 'segunda', TERCA: 'terça', QUARTA: 'quarta', QUINTA: 'quinta', SEXTA: 'sexta' })[a.diaSemana],
+          disciplina: a.disciplina?.nome ?? null,
+          curso: a.curso?.nome ?? '',
+          cursoSigla: a.curso?.sigla ?? null,
+          turma: a.turma ?? null,
+          semestre: a.turma?.semestre ?? null,
+          professor: a.professor?.nome ?? null,
+          dia: DIA_DA_API[a.diaSemana],
           inicio: a.horaInicio,
           fim: a.horaTermino,
         })).filter((a) => a.sala && a.dia && a.inicio && a.fim)
@@ -76,16 +81,28 @@ function App() {
 
   const salas = andar.salas
 
-  // Salas do andar atual destacadas na planta: as que têm aula nos filtros aplicados E batem com a busca.
+  // Para cada andar, as salas que têm aula nos filtros aplicados E batem com a busca.
   // null = nenhum filtro/busca (todas as salas aparecem normais).
-  const destaque = useMemo(() => {
+  const resultadosPorAndar = useMemo(() => {
     if (!filtroAtivo && !termo) return null
     const comAula = new Set(aulas.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
     const q = norm(termo)
-    return new Set(salas
+    return new Map(ANDARES.map((a) => [a.id, new Set(a.salas
       .filter((r) => (!filtroAtivo || comAula.has(r.id)) && (!termo || norm(r.nome).includes(q) || norm(r.id).includes(q)))
-      .map((r) => r.id))
-  }, [aulas, filtros, filtroAtivo, termo, salas])
+      .map((r) => r.id))]))
+  }, [aulas, filtros, filtroAtivo, termo])
+
+  const destaque = resultadosPorAndar?.get(andar.id) ?? null
+  const totalResultados = resultadosPorAndar ? [...resultadosPorAndar.values()].reduce((n, ids) => n + ids.size, 0) : 0
+  const outrosAndares = resultadosPorAndar
+    ? ANDARES.filter((a) => a.id !== andar.id && resultadosPorAndar.get(a.id).size > 0)
+    : []
+
+  const irParaAndar = (a) => {
+    setAndar(a)
+    const ids = resultadosPorAndar?.get(a.id)
+    setSelecionada(ids && ids.size === 1 ? [...ids][0] : null)
+  }
 
   const sala = salas.find((r) => r.id === selecionada) ?? null
   const aulasDaSala = aulas.filter((a) => a.sala === selecionada)
@@ -138,11 +155,10 @@ function App() {
                 role="tab"
                 className={a.id === andar.id ? 'on' : ''}
                 aria-selected={a.id === andar.id}
-                disabled={!a.planta}
-                title={!a.planta ? 'Planta ainda não importada' : undefined}
                 onClick={() => { setAndar(a); setSelecionada(null) }}
               >
                 {a.nome}
+                {resultadosPorAndar && <span className="tab-count">{resultadosPorAndar.get(a.id).size}</span>}
               </button>
             ))}
           </div>
@@ -164,6 +180,24 @@ function App() {
               <p>Verifique sua conexão e tente novamente.</p>
             </div>
             <button type="button" className="btn primary" onClick={() => setTentativa((n) => n + 1)}>Tentar novamente</button>
+          </div>
+        )}
+        {estadoAulas === 'ok' && resultadosPorAndar && destaque.size === 0 && (
+          <div className="sem-resultados" role="status">
+            <div>
+              <strong>{totalResultados === 0 ? 'Nenhuma aula encontrada para os filtros selecionados' : `Nenhum resultado no ${andar.nome.toLowerCase()}`}</strong>
+              <p>{totalResultados === 0 ? 'Altere os filtros ou limpe-os para ver todas as salas.' : 'Há resultados em outros andares:'}</p>
+              {outrosAndares.length > 0 && (
+                <div className="chips">
+                  {outrosAndares.map((a) => (
+                    <button key={a.id} type="button" className="chip" onClick={() => irParaAndar(a)}>
+                      {a.nome} ({resultadosPorAndar.get(a.id).size})
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button type="button" className="btn ghost" onClick={limpar}>Limpar filtros</button>
           </div>
         )}
         {estadoAulas === 'carregando' && (

@@ -1,22 +1,10 @@
-# Integrar o 1º e o 2º andar no mapa
+# Andares do mapa
 
 ## Situação atual
 
-> ⚠️ **Hoje só o Térreo funciona.** As abas **1º andar** e **2º andar** aparecem na tela, mas estão desabilitadas ("Planta ainda não importada").
+O mapa tem os quatro níveis da Unidade 4: **térreo, 1º, 2º e 3º andar**. As plantas de origem estão em `tools/plantas/` (`Terreo.png`, `1-andar.png`, `2-andar.png`, `3-andar.png`). Cada área clicável usa como `id` o código da sala no banco (ex.: `BL4-T3`, `BL4-104`, `BL4-LAB-INF-2`), o mesmo do inventário do back-end (`prisma/dados/salas.json`).
 
-Por que: entre os arquivos entregues pelo time só havia a planta de **um** pavimento.
-
-| Bloco entregue | Planta | Andar |
-|---|---|---|
-| `mapa-interativo` | `planta.js` vetorizado (gerado do DWG) | Térreo. É o que está integrado |
-| `mapavetorizado.atualizado` | `salas.png` | O mesmo térreo, em imagem |
-| `uniara-mapa-front` | `planta-unidade4.png` | Recorte do CAD do mesmo pavimento. As "Salas 201–205" desse bloco eram nomes **fictícios** e não uma planta de 2º andar |
-
-### Divergência de nomenclatura (confirmar com o time)
-
-O protótipo visual chama essa planta de **"1º andar"** (ex.: "BL4-104 · 1º andar"). O código do `mapa-interativo` chama de **"Térreo"**. Nas escadas do desenho está escrito "Segundo andar", o que sugere que o time conta o térreo como 1º andar. Nesse caso o prédio teria 2 pavimentos, e as abas certas seriam só **1º andar** e **2º andar**.
-
-Por enquanto foi mantido **"Térreo"**. Depois de confirmar, para trocar o nome basta editar `nome` em `src/data/andares/index.js` e o 2º parâmetro de `prepararSalas(...)`.
+Ao alterar uma planta ou um ambiente, atualize **os dois lados**: o `salas.js` do andar aqui e o `prisma/dados/salas.json` no back-end, com o mesmo código.
 
 ---
 
