@@ -1,1 +1,37 @@
 
+export const SALAS = [
+  // predio novo
+  { id: 'BL4-119', nome: 'Sala 119', tipo: 'sala', pontos: [[80, 190], [148, 92], [231, 147], [178, 224], [166, 245]] },
+  { id: 'BL4-LAB-AGRONOMIA', nome: 'Laboratório de Agronomia', tipo: 'lab', pontos: [[148, 92], [208, 2], [306, 68], [245, 159], [231, 147]] },
+  { id: 'BL4-122', nome: 'Sala 122', tipo: 'sala', pontos: [[306, 68], [405, 134], [345, 224], [262, 168], [245, 159]] },
+  { id: 'BL4-120', nome: 'Sala 120', tipo: 'sala', pontos: [[262, 168], [345, 224], [278, 323], [198, 270], [212, 246]] },
+  { id: 'BL4-LAB-05', nome: 'Laboratório 5', tipo: 'lab', pontos: [[0, 357], [128, 357], [128, 472], [0, 472]] },
+  { id: 'BL4-118', nome: 'Sala 118', tipo: 'sala', pontos: [[168, 357], [267, 357], [267, 472], [168, 472]] },
+  { id: 'BL4-LAB-03', nome: 'Laboratório 3', tipo: 'lab', pontos: [[0, 472], [128, 472], [128, 585], [0, 585]] },
+  { id: 'BL4-LAB-04', nome: 'Laboratório 4', tipo: 'lab', pontos: [[168, 472], [267, 472], [267, 585], [168, 585]] },
+  { id: 'BL4-LAB-QUIMICA', nome: 'Laboratório de Química', tipo: 'lab', pontos: [[0, 610], [128, 610], [128, 697], [0, 697]] },
+  { id: 'BL4-LAB-FISICA', nome: 'Laboratório de Física', tipo: 'lab', pontos: [[168, 610], [267, 610], [267, 697], [168, 697]] },
+  { id: 'BL4-BANHEIROS-ESQ', nome: 'Banheiros', tipo: 'servico', pontos: [[0, 697], [122, 697], [122, 774], [0, 774]] },
+  { id: 'BL4-ELEVADOR', nome: 'Elevador', tipo: 'servico', pontos: [[0, 774], [122, 774], [122, 803], [0, 803]] },
+  { id: 'BL4-112', nome: 'Sala 112', tipo: 'sala', pontos: [[0, 803], [148, 803], [148, 935], [0, 935]] },
+  { id: 'BL4-111', nome: 'Sala 111', tipo: 'sala', pontos: [[148, 803], [267, 803], [267, 935], [148, 935]] },
+
+  // predio antigo
+  { id: 'BL4-CPD', nome: 'CPD', tipo: 'servico', pontos: [[488, 431], [539, 339], [622, 339], [622, 431]] },
+  { id: 'BL4-AREA-RESTRITA', nome: 'Área restrita', tipo: 'servico', pontos: [[529, 393], [589, 393], [589, 432], [529, 432]] },
+  { id: 'BL4-BANHEIROS-CENTRAL', nome: 'Banheiros', tipo: 'servico', pontos: [[488, 431], [577, 431], [577, 526], [488, 526]] },
+  { id: 'BL4-LAB-INFO-01', nome: 'Laboratório de Informática 1', tipo: 'lab', pontos: [[622, 391], [713, 391], [713, 522], [622, 522]] },
+  { id: 'BL4-106', nome: 'Sala 106', tipo: 'sala', pontos: [[488, 526], [577, 526], [577, 700], [488, 700]] },
+  { id: 'BL4-105', nome: 'Sala 105', tipo: 'sala', pontos: [[488, 700], [577, 700], [577, 797], [488, 797]] },
+  { id: 'BL4-COORD-ADMIN-1', nome: 'Coordenação Administrativa', tipo: 'servico', pontos: [[488, 797], [631, 797], [631, 848], [488, 848]] },
+  { id: 'BL4-102', nome: 'Sala 102', tipo: 'sala', pontos: [[488, 848], [665, 848], [665, 935], [488, 935]] },
+  { id: 'BL4-103', nome: 'Sala 103', tipo: 'sala', pontos: [[665, 848], [800, 848], [800, 935], [665, 935]] },
+  { id: 'BL4-COORD-ENG-PRODUCAO', nome: 'Coordenação de Engenharia de Produção', tipo: 'servico', pontos: [[622, 522], [659, 522], [659, 614], [622, 614]] },
+  { id: 'BL4-COORD-ESTAGIO', nome: 'Coordenação de Estágio/Técnica Administrativa', tipo: 'servico', pontos: [[622, 614], [659, 614], [659, 647], [622, 647]] },
+  { id: 'BL4-104', nome: 'Sala 104', tipo: 'sala', pontos: [[659, 522], [800, 522], [800, 614], [659, 614]] },
+  { id: 'BL4-COORD-ADMIN-2', nome: 'Coordenação Administrativa', tipo: 'servico', pontos: [[800, 522], [858, 522], [858, 654], [800, 654]] },
+  { id: 'BL4-SALA-PROFESSORES', nome: 'Sala dos professores', tipo: 'servico', pontos: [[755, 654], [858, 654], [858, 711], [755, 711]] },
+  { id: 'BL4-108', nome: 'Sala 108', tipo: 'sala', pontos: [[800, 755], [892, 755], [892, 935], [800, 935]] },
+  { id: 'BL4-109', nome: 'Sala 109', tipo: 'sala', pontos: [[892, 755], [982, 755], [982, 935], [892, 935]] },
+  { id: 'BL4-110', nome: 'Sala 110', tipo: 'sala', pontos: [[982, 755], [1039, 710], [1138, 757], [1138, 878], [1039, 935], [982, 935]] },
+];
