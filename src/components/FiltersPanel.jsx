@@ -4,7 +4,7 @@ import Icon from './Icon.jsx'
 
 // Tela "Localizar aula" (tela front/tela.html) convertida para React.
 // Os filtros ficam num rascunho e só valem para o mapa ao clicar em "Aplicar filtros".
-export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, aplicar, limpar, rodape }) {
+export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, semestres = [], aplicar, limpar, rodape }) {
   const buscaRef = useRef(null)
 
   // Atalho ⌘K / Ctrl+K foca a busca, como indicado no campo.
@@ -27,7 +27,7 @@ export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, a
   return (
     <aside className="sidebar">
       <h2>Localizar aula</h2>
-      <p className="muted">Encontre salas por curso, dia e período.</p>
+      <p className="muted">Encontre salas por curso, semestre, dia e período.</p>
 
       <label className="search">
         <Icon name="search" />
@@ -49,6 +49,15 @@ export default function FiltersPanel({ busca, setBusca, rascunho, setRascunho, a
           {c}
         </label>
       ))}
+
+      <h3>Semestre</h3>
+      <div className="chips">
+        {semestres.map((s) => (
+          <button key={s} type="button" aria-pressed={rascunho.semestre === s} className={`chip ${rascunho.semestre === s ? 'on' : ''}`} onClick={() => alterna('semestre', s)}>
+            {s}º semestre
+          </button>
+        ))}
+      </div>
 
       <h3>Dia</h3>
       <div className="chips">

@@ -4,7 +4,7 @@ import FiltersPanel from './components/FiltersPanel.jsx'
 import FloorPlan from './components/FloorPlan.jsx'
 import Header from './components/Header.jsx'
 import RoomDetails from './components/RoomDetails.jsx'
-import { AULAS, DIA_LABEL, PERIODO_LABEL, agora, emAndamento, periodoDe } from './data/aulas.js'
+import { DIA_LABEL, PERIODO_LABEL, agora, carregarAulas, emAndamento, periodoDe, semestresDe } from './data/aulas.js'
 import { ANDARES, ANDAR_INICIAL, UNIDADE } from './data/andares/index.js'
 import { api } from './services/api'
 import './App.css'
@@ -13,13 +13,17 @@ import './App.css'
 const ambiente = import.meta.env.VITE_APP_ENV ?? 'LOCAL'
 const versao = __APP_VERSION__
 
-const SEM_FILTRO = { cursos: [], dia: null, periodo: null }
+const SEM_FILTRO = { cursos: [], dia: null, periodo: null, semestre: null }
 const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 const bateFiltro = (aula, f) =>
   (!f.cursos.length || f.cursos.includes(aula.curso)) &&
   (!f.dia || aula.dia === f.dia) &&
-  (!f.periodo || periodoDe(aula.inicio) === f.periodo)
+  (!f.periodo || periodoDe(aula.inicio) === f.periodo) &&
+  (!f.semestre || aula.semestre === f.semestre)
+
+// Códigos das salas que têm planta em algum andar.
+const SALAS_NA_PLANTA = new Set(ANDARES.flatMap((a) => a.salas.map((r) => r.id)))
 
 function App() {
   const now = useMemo(() => agora(), [])
@@ -29,15 +33,20 @@ function App() {
   const [selecionada, setSelecionada] = useState(null)
   const [andar, setAndar] = useState(ANDAR_INICIAL)
   const [saude, setSaude] = useState({ status: 'carregando' })
+  const [aulas, setAulas] = useState([])
   const planRef = useRef(null)
 
   useEffect(() => {
     api('/api/health')
       .then(setSaude)
       .catch(() => setSaude({ status: 'offline' }))
+    // Sem API, o mapa continua navegável, só sem aulas.
+    carregarAulas().then(setAulas).catch(() => setAulas([]))
   }, [])
 
-  const filtroAtivo = filtros.cursos.length > 0 || Boolean(filtros.dia) || Boolean(filtros.periodo)
+  const semestres = useMemo(() => semestresDe(aulas), [aulas])
+
+  const filtroAtivo = filtros.cursos.length > 0 || Boolean(filtros.dia) || Boolean(filtros.periodo) || Boolean(filtros.semestre)
   const termo = busca.trim()
 
   const salas = andar.salas
@@ -46,15 +55,21 @@ function App() {
   // null = nenhum filtro/busca (todas as salas aparecem normais).
   const destaque = useMemo(() => {
     if (!filtroAtivo && !termo) return null
-    const comAula = new Set(AULAS.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
+    const comAula = new Set(aulas.filter((a) => bateFiltro(a, filtros)).map((a) => a.sala))
     const q = norm(termo)
     return new Set(salas
       .filter((r) => (!filtroAtivo || comAula.has(r.id)) && (!termo || norm(r.nome).includes(q) || norm(r.id).includes(q)))
       .map((r) => r.id))
-  }, [filtros, filtroAtivo, termo, salas])
+  }, [aulas, filtros, filtroAtivo, termo, salas])
+
+  // Salas com aula nos filtros aplicados que ainda não têm planta (não dá para destacar no mapa).
+  const salasSemPlanta = useMemo(() => {
+    if (!filtroAtivo) return []
+    return [...new Set(aulas.filter((a) => bateFiltro(a, filtros) && !SALAS_NA_PLANTA.has(a.sala)).map((a) => a.sala))].sort()
+  }, [aulas, filtros, filtroAtivo])
 
   const sala = salas.find((r) => r.id === selecionada) ?? null
-  const aulasDaSala = AULAS.filter((a) => a.sala === selecionada)
+  const aulasDaSala = aulas.filter((a) => a.sala === selecionada)
   const aulaAtual = aulasDaSala.find((a) => emAndamento(a, now)) ?? null
   const aulaFiltrada = filtroAtivo ? aulasDaSala.find((a) => bateFiltro(a, filtros)) ?? null : null
   const aula = aulaAtual ?? aulaFiltrada
@@ -76,6 +91,7 @@ function App() {
         setBusca={setBusca}
         rascunho={rascunho}
         setRascunho={setRascunho}
+        semestres={semestres}
         aplicar={() => setFiltros(rascunho)}
         limpar={limpar}
         rodape={
@@ -117,6 +133,8 @@ function App() {
           courses={filtros.cursos}
           day={DIA_LABEL[filtros.dia]}
           period={PERIODO_LABEL[filtros.periodo]}
+          semester={filtros.semestre && `${filtros.semestre}º semestre`}
+          roomsOffPlan={salasSemPlanta}
           search={termo}
           resultCount={destaque?.size ?? 0}
           floor={andar.id === 'terreo' ? 'térreo' : andar.nome}
